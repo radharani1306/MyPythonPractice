@@ -1,0 +1,15 @@
+import base64
+
+str=""
+
+#Code to convert image to text
+with open("D:\\Capture.png", "rb") as imageFile:
+    str = base64.b64encode(imageFile.read())
+    print("type:: ",type(str))
+    print(str)
+
+#Code to convert text to image
+imgdata = base64.b64decode(str)
+filename = "D:\\imageToSave.gif"
+with open(filename, 'wb') as f:
+    f.write(imgdata)
