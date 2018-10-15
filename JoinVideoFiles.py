@@ -1,14 +1,22 @@
-
 import os
 import subprocess as sp
-import distutils.core
+import distutils.spawn as dist
 import easygui as g
+import time
 # take sequence number for sort
 def extractd_sequence(elem):
      return int(elem[0:2])
 
-def prepare_text_files(rootDir):
+def prepare_text_files(rootDir,out_dir_file):
     # Set the directory you want to start from
+
+    temp = rootDir[rootDir.rindex("\\") + 1:]
+    out_directory_name = os.path.join(out_dir_file, temp)
+    if not os.path.exists(out_directory_name):
+        print("Creating {}...".format(out_directory_name))
+        os.makedirs(out_directory_name)
+
+
     txtfile_set = set()
     for dirName, subdirList, fileList in os.walk(rootDir):
         if not os.path.isfile(dirName):
@@ -37,7 +45,7 @@ def process_videos(fname,destinationDir):
         FFMPEG_BIN = 'ffmpeg.exe'
     else:
         try:
-            FFMPEG_BIN = distutils.spawn.find_executable("ffmpeg")
+            FFMPEG_BIN = dist.find_executable("ffmpeg")
         except AttributeError:
             FFMPEG_BIN = 'ffmpeg'
 
@@ -68,7 +76,7 @@ def cleaning_process(fname,destinationDir):
 
 def combine_videos(sourceDir,destinationDir):
     rootDir = sourceDir
-    txt_files_set = prepare_text_files(rootDir)
+    txt_files_set = prepare_text_files(rootDir,filename2)
     txt_files_sortedset = sorted(txt_files_set,key = extractd_sequence)
     print(txt_files_sortedset)
 
@@ -80,6 +88,9 @@ def combine_videos(sourceDir,destinationDir):
         cleaning_process(txt_name,destinationDir)
 
 if __name__ == "__main__":
-    filename1 = g.diropenbox("Select folder of Videos")
-    filename2 = g.diropenbox("select output folder")
+    filename1 = g.diropenbox(title = "Select folder of Videos",default="F:/Python Videos/")
+    filename2 = g.diropenbox(title = "select output folder",default="D:/Ram/")
+    start_time = time.time()
     combine_videos(filename1,filename2)
+    print("time taken to process====>", (time.time() - start_time))
+
