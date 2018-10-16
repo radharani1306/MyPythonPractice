@@ -3,9 +3,37 @@ import subprocess as sp
 import distutils.spawn as dist
 import easygui as g
 import time
+import string
 # take sequence number for sort
 def extractd_sequence(elem):
      return int(elem[0:2])
+
+def makeSafeFilename(inputFilename):
+    # Set here the valid chars
+    safechars = string.ascii_letters + string.digits + "~ -_."
+    try:
+        data=[]
+        for c in inputFilename:
+            if (c not in safechars):
+                c = c.replace(c,'_')
+            data.append(c)
+        return "".join(data)
+    except:
+        return ""
+    pass
+
+def rename_file(root,name):
+    checkname = makeSafeFilename(name)
+    # checkname = checkname.encode("utf-8")
+    if name != checkname:
+        print("In:", root)
+        print("There was an error with", name)
+        if os.name == "nt":
+            os.rename(root + "\\" + name, root + "\\" + checkname)
+        else:
+            os.rename(root + "/" + name, root + "/" + checkname)
+        print(name, "has been renamed to", checkname)
+    return checkname
 
 def prepare_text_files(rootDir,out_dir_file):
     # Set the directory you want to start from
@@ -28,10 +56,12 @@ def prepare_text_files(rootDir,out_dir_file):
           with open(txt_file_path, "a+") as f:
                 if (fname.endswith('.mp4')):
                     txtfile_set.add(txt_file)
+                    #code to replace special character's in file
+                    fname = rename_file(dirName, fname)
                     f.write("file \'{}\'\n".format(os.path.join(dirName,fname)))
     return txtfile_set
 
-def process_videos(fname,destinationDir):
+def process_videos(fname,destinationDir,choice_flag):
 
     out_file=fname+".mp4"
     in_file = fname + ".txt"
@@ -49,7 +79,6 @@ def process_videos(fname,destinationDir):
             FFMPEG_BIN = dist.find_executable("ffmpeg")
         except AttributeError:
             FFMPEG_BIN = 'ffmpeg'
-    choice_flag = 1 # default is 0
     if(choice_flag == 0):
         command = [FFMPEG_BIN,
                    '-f', 'concat',
@@ -89,7 +118,7 @@ def cleaning_process(fname,destinationDir):
         os.remove(input_filename)
 
 
-def combine_videos(sourceDir,destinationDir):
+def combine_videos(sourceDir,destinationDir,choice):
     rootDir = sourceDir
     txt_files_set = prepare_text_files(rootDir,filename2)
     # txt_files_sortedset = sorted(txt_files_set,key = extractd_sequence)
@@ -97,7 +126,7 @@ def combine_videos(sourceDir,destinationDir):
 
     #Tbis will combine all the video files
     for txt_name in txt_files_set:
-        process_videos(txt_name,destinationDir)
+        process_videos(txt_name,destinationDir,choice)
     # Tbis will combine all the video files
     for txt_name in txt_files_set:
         cleaning_process(txt_name,destinationDir)
@@ -105,7 +134,10 @@ def combine_videos(sourceDir,destinationDir):
 if __name__ == "__main__":
     filename1 = g.diropenbox(title = "Select folder of Videos",default="F:/Python Videos/")
     filename2 = g.diropenbox(title = "select output folder",default="D:/Ram/")
+    msg = "share your opinion"
+    choices = ["0", "1", "2"]
+    reply = g.buttonbox(msg, choices=choices)
     start_time = time.time()
-    combine_videos(filename1,filename2)
+    combine_videos(filename1,filename2,int(reply))
     print("time taken to process====>", (time.time() - start_time))
 
