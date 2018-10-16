@@ -22,7 +22,8 @@ def prepare_text_files(rootDir,out_dir_file):
         if not os.path.isfile(dirName):
             print('sud directory: %s' % dirName)
         txt_file = dirName[dirName.rindex("\\") + 1:]
-        txt_file_path = "D:\\Ram\\{}.txt".format(txt_file)
+        txt_file_path = "{}\\{}.txt".format(out_dir_file,txt_file)
+        print(txt_file_path)
         for fname in fileList:
           with open(txt_file_path, "a+") as f:
                 if (fname.endswith('.mp4')):
@@ -48,16 +49,30 @@ def process_videos(fname,destinationDir):
             FFMPEG_BIN = dist.find_executable("ffmpeg")
         except AttributeError:
             FFMPEG_BIN = 'ffmpeg'
-
-    command = [FFMPEG_BIN,
-               '-f', 'concat',
-               '-safe', '0',
-               '-i', input_filename,
-               '-map', '0',
-               '-map', '-0:a:m:language:eng',
-               '-codec', 'copy',
-               output_filename
-               ]
+    choice_flag = 1 # default is 0
+    if(choice_flag == 0):
+        command = [FFMPEG_BIN,
+                   '-f', 'concat',
+                   '-safe', '0',
+                   '-i', input_filename,
+                   '-map', '0',
+                   '-map', '-0:a:m:language:eng',
+                   '-codec', 'copy',
+                   output_filename
+                   ]
+    else:
+        command = [FFMPEG_BIN,
+                       '-f', 'concat',
+                       '-safe', '0',
+                       '-i', input_filename,
+                       '-map', '0:v',
+                       '-vcodec', 'copy',
+                       '-map', '0:a',
+                        '-acodec', 'copy',
+                       '-disposition:a:0', 'none',
+                        '-disposition:a:1', 'default',
+                       output_filename
+                       ]
     print("ffmpeg command is:", command)
 
     if OS_WIN:
@@ -77,14 +92,14 @@ def cleaning_process(fname,destinationDir):
 def combine_videos(sourceDir,destinationDir):
     rootDir = sourceDir
     txt_files_set = prepare_text_files(rootDir,filename2)
-    txt_files_sortedset = sorted(txt_files_set,key = extractd_sequence)
-    print(txt_files_sortedset)
+    # txt_files_sortedset = sorted(txt_files_set,key = extractd_sequence)
+    # print(txt_files_sortedset)
 
     #Tbis will combine all the video files
-    for txt_name in txt_files_sortedset:
+    for txt_name in txt_files_set:
         process_videos(txt_name,destinationDir)
     # Tbis will combine all the video files
-    for txt_name in txt_files_sortedset:
+    for txt_name in txt_files_set:
         cleaning_process(txt_name,destinationDir)
 
 if __name__ == "__main__":
