@@ -1,0 +1,57 @@
+import moviepy.editor as mp
+import subprocess
+import math
+
+def get_video_length(filename):
+
+    output = subprocess.check_output(("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filename)).strip()
+    video_length = int(float(output))
+    print ("Video length in seconds: "+str(video_length))
+
+    return video_length
+
+def ceildiv(a, b):
+    return int(math.ceil(a / float(b)))
+
+def video_to_audio(filename,split_length):
+    input_filename = "E://Share Videos//Stock Market Training By Ashwani Gujral - [FCO]//{}.flv".format(filename)
+    video_length = get_video_length(input_filename)
+    split_count = ceildiv(video_length, split_length)
+    print("video length==>{}, split_count====>{}".format(video_length,split_count))
+    if (split_count == 1):
+        print
+        "Video length is less then the target split length."
+        raise SystemExit
+    init_value = 0
+    const_length = split_length
+    clip = None
+    for count in range(0,split_count):
+        val = count+1
+        output_filename = "E://Share Videos//Stock Market Training By Ashwani Gujral - [FCO]//Audio Files1//{}-{}.mp4"\
+            .format(filename,val)
+        clip = mp.VideoFileClip(input_filename).subclip(init_value,split_length)
+        print(output_filename)
+        clip.audio.write_audiofile(output_filename)
+        
+        init_value = split_length
+        if video_length  is not None:
+            video_length = abs(video_length - const_length)
+        print("video length changed to ", video_length)
+        if video_length < const_length:
+            split_length = init_value + video_length
+        else:
+            split_length =  const_length*(val+1)
+
+        #print("init value =====>{}, and  split length =====>{}".format(init_value,split_length))
+    if clip is not None:
+        clip.reader.close()
+        clip.audio.reader.close_proc()
+
+if __name__ == "__main__":
+    # filenames = ["4.Pivot Methodology","5.Bank Nifty","6.Swing Trading",
+    #            "7.Investment By A Trader"]
+    # for filename in filenames:
+    filename = "7.Investment By A Trader"
+    duration = 30
+        #for 1 hour = 3600 secs
+    video_to_audio(filename,duration * 60)
